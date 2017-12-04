@@ -1,0 +1,102 @@
+{
+    "description": "Kubernetes one node installation Packer template",
+    "_scope": "Introduction to Kubernetes for Gophers",
+    "_objective":"Prepare an up and ready single-node Kubernetes environment for development and testing",
+    "_additionalInfo": "The Goland Meetup in Milan, Italy",
+    "min_packer_version": "1.0.3",
+     "variables": {
+        "SSH_USER":"centos",
+        "AWS_ACCESS_KEY": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "AWS_SECRET_KEY": "{{env `AES_SECRET_KEY_ID`}}",
+        "VM_NAME":"kubernetes_node"
+    },
+    "builders": [{
+        "type" : "amazon-ebs",
+        "access_key": "{{ user `AWS_ACCESS_KEY`}}",
+        "secret_key": "{{ user `AWS_SECRET_KEY`}}",
+        "region": "eu-central-1",
+        "source_ami": "ami-2540f74a",
+        "instance_type": "t2.micro",
+        "ssh_username": "{{user `SSH_USER`}}",
+        "ami_name": "packer-centos7-{{timestamp}}"
+    }],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [ 
+                "echo Sleeping ",
+                "sleep 5" 
+            ]
+        },
+        {
+            "type": "file",
+            "source": "files/motd",
+            "destination": "/home/centos/motd"
+        },
+        {
+            "type": "file",
+            "source": "files/daemon-json.sh",
+            "destination": "/home/centos/daemon-json.sh"
+        },
+        {
+            "type": "file",
+            "source": "files/kubernetes-repo.sh",
+            "destination": "/home/centos/kubernetes-repo.sh"
+        },
+        {
+            "type": "file",
+            "source": "files/kubernetes-repo.sh",
+            "destination": "/home/centos/kernel-update.sh"
+        },
+        {
+            "type": "file",
+            "source": "files/k8s.conf",
+            "destination": "/home/centos/k8s.conf"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo \" INSTALLING THE FILES \" ",
+                "sudo bash -c /home/centos/daemon-json.sh",
+                "sudo bash -c /home/centos/kubernetes-repo.sh",
+                "sudo bash -c /home/centos/k8s.conf",
+                "sudo bash -c /home/centos/kernel-update.sh",
+                "sudo yum install -y epel-release",
+                "sudo yum install -y ansible",
+                "sudo yum install -y python-pip",
+                "sudo pip install docker-py",
+                "sudo yum install -y yum-utils device-mapper-persistent-data lvm2",
+                "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+                "sudo yum install -y --setopt=obsoletes=0 docker-ce-17.03.1.ce-1.el7.centos docker-ce-selinux-17.03.1.ce-1.el7.centos",
+                "sudo pip install docker-compose",
+                "sudo yum -y install bridge-utils",
+                "sudo yum -y install ebtables ethtool conntrack",
+                "sudo setenforce 0",
+                "sudo modprobe br_netfilter",
+                "sudo modprobe bridge",
+                "sudo modprobe ip_vs",
+                "sudo sysctl --system",
+                "sudo yum install -y kubelet kubeadm kubectl",
+                "sudo systemctl enable docker",
+                "sudo systemctl enable kubelet",
+                "sudo systemctl start docker",
+                "sudo bash -c \" echo \"$(hostname -I | awk '{print $1}') $(hostname)\" > /etc/hosts\"",
+                "sudo swapoff -a; sudo kubeadm init  --node-name=\"$(hostname)\" --apiserver-advertise-address=\"$(hostname -I | awk '{print $1}')\" --pod-network-cidr=192.168.0.0/16 --token-ttl=0 --kubernetes-version=v1.7.0",
+                "sudo mkdir -p /root/.kube",
+                "sudo mkdir -p /home/centos/.kube",
+                "whoami",
+                "sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config",
+                "sudo cp -i /etc/kubernetes/admin.conf /home/centos/.kube/config",
+                "sudo kubectl apply -f \"https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml\" ",
+                "echo \"Going to sleep for 60 seconds...\"; sleep 1m",
+                "sudo kubectl get po --all-namespaces",
+                "sudo bash -c \"echo \"sudo swapoff -a\" >> /root/.bashrc; sudo echo \"sudo swapoff -a\" >> /home/kubernetes/.bashrc\"",
+                "sudo kubectl taint nodes --all node-role.kubernetes.io/master-"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "provisioners/ansible/playbooks/main.yaml"
+        }
+    ]
+}

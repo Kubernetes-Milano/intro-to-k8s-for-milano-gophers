@@ -1,0 +1,190 @@
+{
+    "description": "Kubernetes one node installation Packer template",
+    "_scope": "Introduction to Kubernetes for Gophers",
+    "_objective":"Prepare an up and ready single-node Kubernetes environment for development and testing",
+    "_additionalInfo": "The Goland Meetup in Milan, Italy",
+    "min_packer_version": "1.0.3",
+     "variables": {
+        "ISO_FILE": "CentOS-7-x86_64-Minimal-1611.iso",
+        "ISO_URL":"https://buildlogs.centos.org/rolling/7/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso",
+        "ISO_CHECKSUM":"27bd866242ee058b7a5754e83d8ee8403e216b93d130d800852a96f41c34d86a",
+        "ISO_CHECKSUM_TYPE": "sha256",
+        "SSH_USER":"root",
+        "SSH_PASSWORD":"{{ env `SSH_PASSWORD`}}",
+        "VM_NAME":"kubernetes_machine",
+        "OUTPUT_DIRECTORY":"./build-output"
+    },
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "guest_os_type": "RedHat_64",
+            "vm_name": "{{user `VM_NAME`}}",
+            "headless": "false",
+            "http_directory": "http",
+            "output_directory": "{{user `OUTPUT_DIRECTORY`}}",
+            "iso_urls": [
+                "iso/CentOS-7-x86_64-Minimal-1611.iso",
+                "{{user `ISO_URL`}}"
+            ],
+            "iso_checksum":"{{ user `ISO_CHECKSUM`}}",
+            "iso_checksum_type":"{{user `ISO_CHECKSUM_TYPE`}}",
+            "ssh_username": "{{user `SSH_USER`}}",
+            "ssh_password":"{{user `SSH_PASSWORD`}}",
+            "ssh_wait_timeout":"10000s",
+            "boot_command": [
+                "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+            ],
+            "boot_wait":"10s",
+            "shutdown_command": "echo '{{user `SSH_PASSWORD`}}' | sudo -S shutdown -P now",
+            "vboxmanage":[
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--memory",
+                    "2048"
+                ],
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--cpus",
+                    "2"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--audio", 
+                    "none"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--usb", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--pagefusion", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--cpuhotplug", 
+                    "on"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--cpuexecutioncap", 
+                    "80"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--hwvirtex", 
+                    "on"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}",
+                    "--accelerate3d", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--accelerate2dvideo", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--bioslogofadein", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--bioslogofadeout", 
+                    "off"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--biosbootmenu", 
+                    "disabled"
+                ],
+                [
+                    "modifyvm", 
+                    "{{.Name}}", 
+                    "--firmware", 
+                    "bios"
+                ]
+            ],
+            "format":"ovf"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [ "sleep 5" ]
+        },
+        {
+            "type": "file",
+            "source": "files/motd",
+            "destination": "/home/kubernetes/motd"
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "files/daemon-json.sh",
+                "files/kubernetes-repo.sh",
+                "files/k8s.conf"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo yum install -y epel-release",
+                "sudo yum install -y ansible",
+                "sudo yum install -y python-pip",
+                "sudo pip install docker-py",
+                "sudo yum install -y yum-utils device-mapper-persistent-data lvm2",
+                "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+                "sudo yum install -y --setopt=obsoletes=0 docker-ce-17.03.1.ce-1.el7.centos docker-ce-selinux-17.03.1.ce-1.el7.centos",
+                "sudo pip install docker-compose",
+                "sudo yum -y install bridge-utils",
+                "sudo yum -y install ebtables ethtool conntrack",
+                "sudo setenforce 0",
+                "sudo modprobe br_netfilter",
+                "sudo modprobe bridge",
+                "sudo modprobe ip_vs",
+                "sudo sysctl --system",
+                "sudo yum install -y kubelet kubeadm kubectl",
+                "sudo systemctl enable docker",
+                "sudo systemctl enable kubelet",
+                "sudo systemctl start docker",
+                "sudo echo \"$(hostname -I | awk '{print $1}') $(hostname)\" > /etc/hosts",
+                "sudo swapoff -a; sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --token-ttl=0 --kubernetes-version=v1.7.0",
+                "sudo mkdir -p /root/.kube",
+                "sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config",
+                "sudo su; kubectl apply -f \"https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml\" ",
+                "echo \"Going to sleep for 120 seconds...\"; sudo sleep 3m",
+                "sudo kubectl get po --all-namespaces",
+                "sudo echo \"sudo swapoff -a\" >> /root/.bashrc; sudo echo \"sudo swapoff -a\" >> /home/kubernetes/.bashrc",
+                "sudo kubectl taint nodes --all node-role.kubernetes.io/master-"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "provisioners/ansible/playbooks/main.yaml"
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "manifest",
+            "output": "./build-output/packer-manifest.json"
+        }
+    ]
+}

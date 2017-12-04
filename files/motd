@@ -1,0 +1,11 @@
+This system is managed by Kuberentes 
+
+Any change done on this system could introduce a  configuration drift
+  
+OS: {{ ansible_distribution }} {{ ansible_distribution_version }} 
+Hostname: {{ inventory_hostname }} 
+eth0 address: {{ ansible_default_ipv4.address }} 
+
+All connections are monitored and recorded 
+
+Disconnect IMMEDIATELY if you are not an authorized user.

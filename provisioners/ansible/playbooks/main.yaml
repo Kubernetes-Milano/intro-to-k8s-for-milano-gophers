@@ -1,0 +1,24 @@
+---
+- hosts: all
+  remote_user: ansible
+  tasks:    
+  - name: Ensure Git is installed
+    yum:
+      name: git
+      state: present
+    become: True
+  - name: Ensure Vim is installed
+    yum:
+      name: vim
+      state: present
+    become: True
+  - name: Ensure the MOTD file is present and updated
+    template: 
+      src: /home/kubernetes/motd
+      dest: /etc/motd
+      owner: root
+      group: root
+      mode: 0644
+    become: True
+ # - name:
+ # - name:
