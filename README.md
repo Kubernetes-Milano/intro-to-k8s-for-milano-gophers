@@ -106,6 +106,20 @@ The destination port MUST be the integer 22.
 As source port use one that is not conflicting 
 with the existing exposed ports on your local machine.
 
+### How to log in the running Virtual Machine?
+
+After configured the NAT port-forwarding, you can use the 
+the following credentials to log in the machine:
+
+```bash
+
+Username: root
+Password: changeme
+
+```
+**As soon as possibile, following the first login 
+change the root user password and optionally add your 
+SSH key to the system.**
 
 ## References
 
