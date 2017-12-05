@@ -113,8 +113,9 @@ the following credentials to log in the machine:
 
 ```bash
 
-Username: root
-Password: changeme
+# Username: root
+# Password: changeme
+export EXPOSED_PORT="2222"; ssh root@localhost -p ${EXPOSED_PORT}
 
 ```
 **As soon as possibile, following the first login 
