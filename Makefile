@@ -2,9 +2,16 @@
 TEMPLATE_FILE="template.json"
 VALIDATE_OPTS="-syntax-only"
 
-build: clean 
+build: clean
+	@echo "========== Virtual Machine Buiding... =========="
+	@echo
+	@echo "Exporting the environment variables"
+	@source .env
+	@echo 
+	@echo "Packer starts to build the pipeline"
 	@packer build \
-			"${TEMPLATE_FILE}"
+			"${TEMPLATE_FILE}" 
+	echo "========== End =========="
 
 validate:
 	@packer validate "${VALIDATE_OPTS}" \
