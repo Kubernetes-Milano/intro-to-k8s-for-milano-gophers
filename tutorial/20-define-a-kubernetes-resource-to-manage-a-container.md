@@ -1,18 +1,16 @@
-# Define a Kubernetes object that manages your container 
+# Define a Kubernetes object that manages your container (estimated time ~20/30min)
 
-## (expected time ~20/30min)
-
-Before continuing, verify that: you have a ready to use DCR and that 
+Before continuing, verify that: you have a ready to use DCR and that
 you pushed your container to registry.
 
 Once the image is saved inside the registry, continue.
 
 ### Namespaces
 
-An important Kubernetes objects are the `[namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)`.
+Important Kubernetes objects are the [namespaces](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/).
 
 These improve the kubernetes cluster resource sharing and isolation.
-For example, the same physical cluster can be used for testing, QA, 
+For example, the same physical cluster can be used for testing, QA,
 and production environments.
 
 By default if you do not specify explicitly a namespace the k8s system
@@ -310,7 +308,7 @@ spec:
 ### Persistent Volumes
 
 Ops in love with Kubernetes appreciate a lot the levels of abstraction
-Kubernetes offers. In this section you can see how is possible 
+Kubernetes offers. In this section you can see how is possible
 to abstract from the the physical storage. In this case the storage type
 is the good classic NFS service.
 

@@ -15,4 +15,8 @@ community discovered during daily routines.
 
 *Resources:*
 
-    - 
+- [Designing Distributed Systems](http://shop.oreilly.com/product/0636920072768.do)
+  by **Brendan Burns**;
+
+- [Kubernetes Up and Running](http://shop.oreilly.com/product/0636920043874.do)
+  by **Brendan Burns, Kelsey Hightower, Joe Beda**

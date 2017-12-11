@@ -84,7 +84,4 @@ docker pull localhost:6000/nginx:alpine
 Try to think about running a private registry on cloud
 providers like AWS, Azure and Google Cloud Platform.
 
-
 Happy Kubesting!
-
-
