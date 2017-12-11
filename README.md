@@ -91,6 +91,7 @@ correctly installed, the paths are exported, execute the command:
 # This command will use Packer, from HashiCorp. 
 # To learn more, visit the documentation page:
 # **https://www.packer.io/docs/index.html**
+source .env
 make build
 
 ```
