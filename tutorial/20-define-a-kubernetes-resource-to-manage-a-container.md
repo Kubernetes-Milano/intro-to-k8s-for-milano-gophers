@@ -357,6 +357,23 @@ spec:
 
 ```
 
+### What about improving? Can we do a step further?
+
+The first step is done. You have written the Kubernetes Yaml manfest files. 
+And now what? Have you to deploy them to Kubernetes as-is? 
+
+Can anyone see anything strange in the prevous manifests? Maybe the tons of 
+configurations details exposed there is not a good idea? 
+
+Kubernetes gives you an object to manage the configurations of your containers inside
+a Pod. This resource is [ConfigMap](https://kubernetes.io/docs/tasks/configure-pod-container/configmap/).
+
+So, the next step involves a refactoring of before included Yaml files and extrapolate 
+configurations to external configmaps. 
+
+Here we did one step towards improving. Me need to invest constantly on improving, 
+so take your time and do it!
+
 ### Define the Kubernetes resources manifests for your example app
 
 For starting to deal with Kubernetes resources may be useful to replicate
